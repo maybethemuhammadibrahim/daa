@@ -1,0 +1,20 @@
+cp01 seed=101  n=1000, uniform random real coords in [0, 10^6]
+cp02 seed=102  n=10000, uniform random real coords in [0, 10^6]
+cp03 seed=103  n=100000, uniform random real coords in [0, 10^6]
+cp04 seed=104  n=1000000, uniform random real coords in [0, 10^6]
+cp05 seed=105  n=1000000, clustered, gaussian (sigma 5000) around 10 random centers
+cp06 seed=106  n=1000000, integer coords in [0, 500], many duplicates, closest distance 0
+cp07 seed=107  n=100000, all on the vertical line x=500000, distinct random integer y
+cp08 seed=108  n=100000, 250 x 400 grid with spacing 10 (many tied closest pairs), shuffled
+cp09 seed=109  n=1000000, jittered grid plus two very close points straddling the median x
+cp10 seed=110  n=101, integer coords in [0, 100], small demo file
+im01 seed=201  two random numbers, 1000 digits each
+im02 seed=202  two random numbers, 10000 digits each
+im03 seed=203  two random numbers, 100000 digits each
+im04 seed=204  two random numbers, 1000000 digits each
+im05 seed=205  one random number of 1000000 digits, one of 10 digits
+im06 seed=206  100000 digits: one number all 9s, one random
+im07 seed=207  99999 digits (odd length), mostly zeros, first digit nonzero
+im08 seed=208  1000000 digits: both numbers are powers of 10
+im09 seed=209  one number is 0, the other has 1000000 digits
+im10 seed=210  two random numbers, 101 digits each, small demo file
