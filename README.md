@@ -40,7 +40,13 @@ Both generators also write `data/seeds.txt`. Files of 1 MB or more are git-ignor
 
     streamlit run app.py
 
-Pick a file in the sidebar (or upload one, or generate a random one), then press Run. Inputs up to 200 points / 200 digits are shown step by step, bigger ones show the result and running time. The "Benchmark results" tab shows the Part 3 table.
+1. Pick the algorithm.
+2. Pick an input: a premade file (cp01 to cp10, im01 to im10), a random input (size and seed), or an uploaded file. A premade file that is not on disk yet (the large, git-ignored ones) can be generated from its seed with one click, the result is identical to running the generator.
+3. Press Run.
+
+Inputs up to 200 points / 200 digits get a step-by-step dry run: the page scrolls to it and plays it automatically (pause, previous, next, speed). Closest pair shows the divide line, the strip and the best pair on a plot; Karatsuba shows the recursion tree, the current call split into high and low parts, and the call stack. Bigger inputs show the result, the running time and why there is no dry run. The "Benchmark results" tab shows the Part 3 tables.
+
+The app needs Python 3.11 or newer (`sys.set_int_max_str_digits`).
 
 ## Notes for the report
 

@@ -7,9 +7,11 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from closest_pair import gen_cp
 from closest_pair.cp import closest_pair
 from closest_pair.cp_view import show_cp_steps
 from closest_pair.gen_cp import make_custom as make_cp
+from karatsuba import gen_im
 from karatsuba.gen_im import make_custom as make_im
 from karatsuba.im_view import show_im_steps
 from karatsuba.kara import multiply
@@ -21,6 +23,10 @@ STEP_MAX_POINTS = 200
 STEP_MAX_DIGITS = 200
 SPEEDS = [0.2, 0.4, 0.6, 1.0, 1.5, 2.0]
 
+# digits of the longer number in each premade im file (see karatsuba/gen_im.py)
+IM_DIGITS = {"im01": 1000, "im02": 10**4, "im03": 10**5, "im04": 10**6, "im05": 10**6,
+             "im06": 10**5, "im07": 99999, "im08": 10**6, "im09": 10**6, "im10": 101}
+
 ALGOS = {"Closest pair of points": "cp", "Karatsuba multiplication": "im"}
 SOURCES = {
     "premade": ":material/folder_open: Premade file",
@@ -31,7 +37,8 @@ SOURCES = {
 st.set_page_config(page_title="DAA Project", page_icon=":material/account_tree:", layout="wide")
 
 
-@st.cache_data
+# a parsed 1,000,000 point file is large, keep only a few in memory (hosting has ~1 GB)
+@st.cache_data(max_entries=3)
 def read_file(path, mtime):
     with open(path) as f:
         text = f.read()
@@ -45,13 +52,21 @@ def read_file(path, mtime):
     return {"kind": "cp", "pts": pts}
 
 
-@st.cache_data
-def file_size_of(path, mtime, code):
-    # input size without parsing the whole file: points for cp, longest number for im
-    with open(path) as f:
-        if code == "cp":
-            return int(f.readline())
-        return max(len(line.strip()) for line in f)
+def make_premade(name):
+    """Rebuild one of cp01..cp10 / im01..im10 exactly like the generators' main() does."""
+    path = os.path.join(DATA, name + ".txt")
+    if name.startswith("cp"):
+        func, n = gen_cp.GEN[name]
+        rnd = random.Random(gen_cp.SEEDS[name])
+        if name == "cp10":
+            pts = [(rnd.randint(0, 100), rnd.randint(0, 100)) for _ in range(n)]
+        else:
+            pts = func(rnd, n)
+        gen_cp.write_pts(path, pts)
+    else:
+        rnd = random.Random(gen_im.SEEDS[name])
+        a, b = gen_im.make(name, rnd)
+        gen_im.write_nums(path, a, b)
 
 
 def limit_of(code):
@@ -84,19 +99,29 @@ def pick_input(code):
                                   default="premade", required=True, key="source",
                                   label_visibility="collapsed")
     if source == "premade":
-        premade = [f for f in sorted(os.listdir(DATA))
-                   if f.startswith(code) and f.endswith(".txt") and f[2:4].isdigit()]
-        if not premade:
-            st.warning("No premade files in data/. Run the generators first (see README).")
-            return None
+        gen = gen_cp if code == "cp" else gen_im
+        premade = [name + ".txt" for name in sorted(gen.SEEDS)]
 
+        # labels must not change when a file gets generated, or Streamlit sees a new
+        # widget and jumps back to the first file. So the size comes from the generator.
         def label(f):
-            p = os.path.join(DATA, f)
-            n = file_size_of(p, os.path.getmtime(p), code)
+            n = gen_cp.GEN[f[:-4]][1] if code == "cp" else IM_DIGITS[f[:-4]]
             tag = "dry run available" if n <= limit_of(code) else "result only"
             return "%s  ·  %s  ·  %s" % (f, size_text(code, n), tag)
 
-        return st.selectbox("File", premade, format_func=label, key="premade_" + code)
+        fname = st.selectbox("File", premade, format_func=label, key="premade_" + code)
+        name = fname[:-4]
+        if os.path.exists(os.path.join(DATA, fname)):
+            st.caption("Content: %s (seed %d)" % (gen.DESC[name], gen.SEEDS[name]))
+            return fname
+        st.info("**%s is not here yet.** Files of 1 MB or more are not stored in the repo, "
+                "they are rebuilt with the project's generator. This one uses seed %d: %s."
+                % (fname, gen.SEEDS[name], gen.DESC[name]), icon=":material/info:")
+        if st.button("Generate %s" % fname, icon=":material/build:", type="primary"):
+            with st.spinner("Generating %s from seed %d..." % (fname, gen.SEEDS[name])):
+                make_premade(name)
+            st.rerun()
+        return None
 
     if source == "random":
         label = "Number of points" if code == "cp" else "Digits in each number"
