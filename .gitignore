@@ -1,0 +1,24 @@
+__pycache__/
+*.pyc
+dist/
+NOTES_*.md
+PROMPT.md
+
+# files of 1 MB or more, regenerate with the generators
+data/cp03.txt
+data/cp04.txt
+data/cp05.txt
+data/cp06.txt
+data/cp07.txt
+data/cp08.txt
+data/cp09.txt
+data/im04.txt
+data/im05.txt
+data/im08.txt
+data/im09.txt
+results/im04_product.txt
+results/im05_product.txt
+results/im08_product.txt
+
+# files the app writes when you generate a random input
+data/custom_*
