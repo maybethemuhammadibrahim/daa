@@ -147,6 +147,22 @@ def dry_run_panel(code, n, small):
     return dry
 
 
+def no_dry_run_reason(res):
+    code, n = res["kind"], res["n"]
+    if res["small"]:
+        return ("**No step-by-step dry run:** it was switched off in step 3. "
+                "Turn it on and press Run again to watch the steps.")
+    unit = "points" if code == "cp" else "digits"
+    what = "the closest pair" if code == "cp" else "the product"
+    extra = " The plot below shows a sample of the points with the closest pair in red." \
+        if code == "cp" else ""
+    return ("**No step-by-step dry run for this input.** It has %s, and the dry run is only for "
+            "inputs up to %d %s. Bigger inputs make too many recursive calls to follow one by one "
+            "(and recording every step would slow the run down), so only %s and the running "
+            "time are shown.%s"
+            % (size_text(code, n), limit_of(code), unit, what, extra))
+
+
 def run_page():
     with st.container(border=True):
         st.markdown("**1. Algorithm**")
@@ -198,7 +214,7 @@ def run_page():
         clicked = st.button(label, type="primary", icon=":material/play_arrow:", width="stretch")
 
     if clicked:
-        res = {"file": fname, "kind": code, "steps": [] if dry else None}
+        res = {"file": fname, "kind": code, "steps": [] if dry else None, "n": n, "small": small}
         t = time.perf_counter()
         with st.spinner("Running %s on %s..." % (algo.lower(), fname)):
             if code == "cp":
@@ -226,6 +242,8 @@ def run_page():
         return
 
     st.subheader("Result", anchor="result")
+    if res["steps"] is None:
+        st.info(no_dry_run_reason(res), icon=":material/info:")
     c1, c2, c3 = st.columns(3)
     c1.metric("Running time", "%.3f s" % res["time"])
     if res["kind"] == "cp":
